@@ -1,6 +1,6 @@
 import argparse
 from pathlib import Path
-from collections import defaultdict
+import re
 
 
 def get_args():
@@ -9,37 +9,21 @@ def get_args():
     return parser.parse_args()
 
 
-def reacts(c1:str, c2:str):
-    def is_lower(c:str):
-        return c == c.lower()
-    def is_upper(c:str):
-        return c == c.upper()
+def lower_upper_pairs():
+    lows  = range(ord('a'), ord('z') + 1)
+    ups = range(ord('A'), ord('Z') + 1)
+    for low, up in zip(lows, ups):
+         yield map(chr, (low, up))
 
-    return c1.lower() == c2.lower() and (is_lower(c1) and is_upper(c2) or is_upper(c1) and is_lower(c2))
 
-def solve(string:str):
-    i = 0
-    diff = 1 # difference between index(c1) and index(c2)
-    removed = defaultdict(int)
-    max_i = len(string) - 1
-    while i < max_i - 1:
-        c1 = string[i]
-        i += 1
-        while i in removed:
-            diff += 1
-            i += 1
-        if i > max_i:
-            break # everything to the right of c1 has been removed
-        c2 = string[i]
-        if reacts(c1, c2):
-            removed[i] = 1 # c2
-            i -= diff
-            removed[i] = 1 # c1
-            while i in removed:
-                i -= 1
-        diff = 1
-
-    return len([k for k in range(len(string)) if k not in removed])
+def solve(collapsed:str):
+    prev_iter = ''
+    while len(collapsed) != len(prev_iter):
+        prev_iter = collapsed
+        for low, up in lower_upper_pairs():
+            collapsed = re.sub(low+up, '', collapsed)
+            collapsed = re.sub(up+low, '', collapsed)
+    return len(collapsed)
 
 
 def main():
